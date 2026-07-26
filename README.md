@@ -1,1 +1,1 @@
-"# TCC - Uso de tecnologia de Inteligˆncia Artificial para an lise e pontua‡Æo de figuras pol¡ticas" 
+# TCC - Uso de tecnologia de Inteligï¿½ncia Artificial para analise e pontuacao de figuras politicas 
