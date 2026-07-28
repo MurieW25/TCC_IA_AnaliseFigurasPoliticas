@@ -3,6 +3,13 @@ import requests
 import pandas as pd
 from IPython.display import display
 
+bases_economia = {}
+#bases_educacao = {}
+#bases_saude = {}
+#bases_segurancapublica = {}
+
+# --------------------------------------------------- INICIO DATABASES ECONOMIA
+
 #BUSCA DATABASES NO SITE DO IPEADATA POR API
 # Baixa todos os metadados
 url = "https://www.ipeadata.gov.br/api/odata4/Metadados"
@@ -107,8 +114,6 @@ def carregar_serie(codigo, nome_serie):
         print(f"Erro na série {codigo}: {e}")
         return None
 
-bases_economia = {}
-
 for nome, codigo in SERIES.items():
     df = carregar_serie(codigo, nome)
     if df is not None:
@@ -138,6 +143,29 @@ bases_economia["divida_liquida"] = carregar_bcb(4505, "divida_liquida")
 bases_economia["divida_bruta"] = (bases_economia["divida_bruta"].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
 bases_economia["divida_liquida"] = (bases_economia["divida_liquida"].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
 
+# --------------------------------------------------- FIM DATABASES ECONOMIA
+
+# --------------------------------------------------- INICIO DATABASES EDUCACAO
+
+# --------------------------------------------------- FIM DATABASES EDUCACAO
+
+# --------------------------------------------------- INICIO DATABASES SAUDE
+
+# ---------------------------------------------------- FIM DATABASES SAUDE
+
+# --------------------------------------------------- INICIO DATABASES SEGURANCA PUBLICA
+
+# --------------------------------------------------- FIM DATABASES SEGURANCA PUBLICA
+
 class Database:
     def getDatabaseEconomia():
         return bases_economia
+
+    #def getDatabaseEducacao():
+    #    return bases_educacao
+
+    #def getDatabaseSaude():
+    #    return bases_saude
+
+    #def getDatabaseSegurancaPublica():
+    #    return bases_segurancapublica
