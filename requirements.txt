@@ -1,0 +1,6 @@
+ipython==9.15.0
+matplotlib==3.11.1
+numpy==2.5.1
+pandas==3.0.5
+Requests==2.34.2
+scikit_learn==1.9.0
