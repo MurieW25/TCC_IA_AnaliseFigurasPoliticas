@@ -42,7 +42,7 @@ def printFlags(db):
 
 class Flags:
     def getFlagsEconomia():
-        return bases_economia_flags
+        return calculaFlags(bases_economia_flags)
 
     #def getFlagsEducacao():
     #    return bases_educacao_flags

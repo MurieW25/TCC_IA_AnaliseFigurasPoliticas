@@ -3,10 +3,36 @@ import requests
 import pandas as pd
 from IPython.display import display
 
+from DadosAbertosBrasil import ipea
+
 bases_economia = {}
 #bases_educacao = {}
 #bases_saude = {}
-#bases_segurancapublica = {}
+bases_segurancapublica = {}
+
+# --------------------------------------------------- FUNCOES ADICIONAIS
+def padronizaIBGE(df_IBGE, nome):
+    df = df_IBGE.rename(columns={
+    "D3C": "Data",
+    "V": "Valor"})
+    df_IBGE["Nome"] = nome
+    return df
+
+def padronizar_df_IPEADATA(df, nome):
+    df = df.copy()
+
+    df = df.rename(columns={
+        "VALDATA": "Data",
+        "VALVALOR": "Valor"
+    })
+
+    df["Data"] = pd.to_datetime(df["Data"], utc=True)
+
+    df["Nome"] = nome
+
+    df = df[["Nome", "Data", "Valor"]]
+
+    return df
 
 # --------------------------------------------------- INICIO DATABASES ECONOMIA
 
@@ -48,7 +74,7 @@ meta_macro = meta[
     & (meta["SERSTATUS"] == "A")
 ]
 
-SERIES = {
+SERIES_ECONOMIA = {
     # PIB
     "pib": "WEO_PIBWEOBRA",
 
@@ -75,23 +101,9 @@ SERIES = {
     "salario_minimo_ppc": "GAC12_PPCTAXAC12",
 }
 
-def padronizar_df_IPEADATA(df, nome_serie):
-    df = df.copy()
 
-    df = df.rename(columns={
-        "VALDATA": "Data",
-        "VALVALOR": "Valor"
-    })
 
-    df["Data"] = pd.to_datetime(df["Data"], utc=True)
-
-    df["Nome"] = nome_serie
-
-    df = df[["Nome", "Data", "Valor"]]
-
-    return df
-
-def carregar_serie(codigo, nome_serie):
+def carregar_serie_economia(codigo, nome_serie):
     url = f"https://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='{codigo}')"
 
     try:
@@ -114,8 +126,8 @@ def carregar_serie(codigo, nome_serie):
         print(f"Erro na série {codigo}: {e}")
         return None
 
-for nome, codigo in SERIES.items():
-    df = carregar_serie(codigo, nome)
+for nome, codigo in SERIES_ECONOMIA.items():
+    df = carregar_serie_economia(codigo, nome)
     if df is not None:
         bases_economia[nome] = df
         bases_economia[nome] = (bases_economia[nome].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
@@ -154,6 +166,24 @@ bases_economia["divida_liquida"] = (bases_economia["divida_liquida"].pivot_table
 # ---------------------------------------------------- FIM DATABASES SAUDE
 
 # --------------------------------------------------- INICIO DATABASES SEGURANCA PUBLICA
+#series_segpub = ipea.lista_series(contendo="homicídio")
+#print(series_segpub[['codigo', 'nome']])
+
+SERIES_SEGURANCAPUBLICA = {
+    "homicidios_registrados" : "AVIOL12_HOMIC",
+    "taxa_homicidios" : "AVIOL12_THOMIC",
+}
+
+for nome, codigo in SERIES_SEGURANCAPUBLICA.items():
+    try:
+        df = ipea.serie(codigo)
+    except Exception as e:
+        print(f"ERRO NA SERIE {codigo}: {e}")
+
+    if df is not None:
+        bases_segurancapublica[nome] = df
+        #bases_segurancapublica[nome] = (bases_economia[nome].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
+        print(bases_economia[nome].head())
 
 # --------------------------------------------------- FIM DATABASES SEGURANCA PUBLICA
 
