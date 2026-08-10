@@ -10,6 +10,7 @@ bases_economia = {}
 #bases_saude = {}
 bases_segurancapublica = {}
 
+
 # --------------------------------------------------- FUNCOES ADICIONAIS
 def padronizaIBGE(df_IBGE, nome):
     df = df_IBGE.rename(columns={
@@ -166,7 +167,8 @@ bases_economia["divida_liquida"] = (bases_economia["divida_liquida"].pivot_table
 # ---------------------------------------------------- FIM DATABASES SAUDE
 
 # --------------------------------------------------- INICIO DATABASES SEGURANCA PUBLICA
-#series_segpub = ipea.lista_series(contendo="homicídio")
+#código usado para buscar os codigos das databases
+# series_segpub = ipea.lista_series(contendo="BUSCA")
 #print(series_segpub[['codigo', 'nome']])
 
 SERIES_SEGURANCAPUBLICA = {
@@ -183,7 +185,7 @@ for nome, codigo in SERIES_SEGURANCAPUBLICA.items():
     if df is not None:
         bases_segurancapublica[nome] = df
         #bases_segurancapublica[nome] = (bases_economia[nome].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
-        print(bases_economia[nome].head())
+        print(bases_segurancapublica[nome].head())
 
 # --------------------------------------------------- FIM DATABASES SEGURANCA PUBLICA
 
