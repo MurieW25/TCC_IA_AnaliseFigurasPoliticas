@@ -168,23 +168,36 @@ bases_economia["divida_liquida"] = (bases_economia["divida_liquida"].pivot_table
 
 # --------------------------------------------------- INICIO DATABASES SEGURANCA PUBLICA
 #código usado para buscar os codigos das databases
-# series_segpub = ipea.lista_series(contendo="BUSCA")
+#series_segpub = ipea.lista_series(contendo="BUSCA")
 #print(series_segpub[['codigo', 'nome']])
 
 SERIES_SEGURANCAPUBLICA = {
     "homicidios_registrados" : "AVIOL12_HOMIC",
     "taxa_homicidios" : "AVIOL12_THOMIC",
+    "suicidios_registrados" : "AVIOL12_SUICID",
+    "taxa_suicidios" : "AVIOL12_TSUICID",
+    "obitos_acidente_transito" : "AVIOL12_ACIDT",
+    #"violencia_sexual" - não há no DadosAbertosBrasil
+    #"violencia_fisica" - não há no DadosAbertosBrasil
+    #"violencia_psicologica" - não há no DadosAbertosBrasil
 }
 
 for nome, codigo in SERIES_SEGURANCAPUBLICA.items():
     try:
         df = ipea.serie(codigo)
+        if "nivel" in df.columns:
+         df = df[df["nivel"]=="Brasil"]
+        df = df.rename(columns={
+        "data": "Data",
+        "valor": "Valor"
+        })
+        df["Nome"] = nome
     except Exception as e:
         print(f"ERRO NA SERIE {codigo}: {e}")
 
     if df is not None:
         bases_segurancapublica[nome] = df
-        #bases_segurancapublica[nome] = (bases_economia[nome].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
+        bases_segurancapublica[nome] = (bases_segurancapublica[nome].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
         print(bases_segurancapublica[nome].head())
 
 # --------------------------------------------------- FIM DATABASES SEGURANCA PUBLICA
