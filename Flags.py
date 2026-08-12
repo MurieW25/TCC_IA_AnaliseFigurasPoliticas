@@ -2,21 +2,21 @@ from Databases import Database
 import pandas as pd
 import numpy as np
 
-bases_economia = Database.getDatabaseEconomia()
-#bases_educacao = Database.getDatabaseEducacao()
-#bases_saude = Database.getDatabaseSaude()
-#bases_segurancapublica = Database.getDatabaseSegurancaPublica()
+bases_economia = {}
+#bases_educacao = {}
+#bases_saude = {}
+bases_segurancapublica = {}
 
 #as flags serão utilizadas para realizar o treino da IA, variação usada para realizar o desconto/soma de pontos
 
 bases_economia_flags = {}
 #bases_educacao_flags = {}
 #bases_saude_flags = {}
-#bases_segurancapublica_flags = {}
+bases_segurancapublica_flags = {}
 
-invertidas={"cambio_compra", "inflacao_expectativa_6m", "divida_bruta", "divida_liquida"}
+invertidas={}
 
-def calculaFlags(db):
+def calculaFlags(db, db_flags):
     for nome_base, df in db.items():
 
         coluna_valor = [c for c in df.columns if c != "Data"][0]
@@ -34,7 +34,7 @@ def calculaFlags(db):
 
         df_flag[coluna_flag] = (flag.fillna(0).astype(int))
 
-        bases_economia_flags[nome_base] = df_flag
+        db_flags[nome_base] = df_flag
 
 def printFlags(db):
     for nome_base, df in db.items():
@@ -42,13 +42,22 @@ def printFlags(db):
 
 class Flags:
     def getFlagsEconomia():
-        return calculaFlags(bases_economia_flags)
+        bases_economia = Database.getDatabaseEconomia()
+        invertidas={"cambio_compra", "inflacao_expectativa_6m", "divida_bruta", "divida_liquida"}
+        calculaFlags(bases_economia, bases_economia_flags)
+        return bases_economia_flags
 
     #def getFlagsEducacao():
+    #    bases_educacao = Database.getDatabaseEducacao()
     #    return bases_educacao_flags
 
     #def getFlagsSaude():
+    #    bases_saude = Database.getDatabaseSaude()
     #    return bases_saude_flags
 
-    #def getFlagsSegurancaPublica():
-    #    return bases_segurancapublica_flags
+    def getFlagsSegurancaPublica():
+        bases_segurancapublica = Database.getDatabaseSegurancaPublica()
+        for nome_base, df in Database.getDatabaseSegurancaPublica().items():
+            invertidas = [c for c in df.columns if c != "Data"][0]
+        calculaFlags(bases_segurancapublica, bases_segurancapublica_flags)
+        return bases_segurancapublica_flags
