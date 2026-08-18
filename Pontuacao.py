@@ -43,6 +43,7 @@ data_frame_1 = {
 df = pd.DataFrame(data_frame_1)
 
 print(df)
+database_pontuar = Flags.getFlagsSegurancaPublica()
 
 #DEFININDO DATABASE DAS PONTUAÇÕES
 df_pontuacao = pd.DataFrame(data_frame_1)
@@ -71,6 +72,8 @@ df_pontuacao["pontos_final"] = 0
 MULT_BASE = 0.05
 ADIT_BASE = 5
 
+dados_multiplicativos = ["divida_bruta", "divida_liquida", "taxa_homicidios", "taxa_suicidios"]
+
 for idx, row in df_pontuacao.iterrows():
 
     inicio = row["Inicio_periodo_efetivo"]
@@ -85,7 +88,7 @@ for idx, row in df_pontuacao.iterrows():
         v_mult = 0.0
         v_adit = 0.0
 
-        for nome_base, df in Flags.getFlagsEconomia().items():
+        for nome_base, df in database_pontuar.items():
 
             df_mes = df[df["Data"].dt.to_period("M") == mes.to_period("M")]
 
@@ -101,7 +104,7 @@ for idx, row in df_pontuacao.iterrows():
 
                 var = col.replace("Flag_", "")
 
-                if var in ["divida_bruta", "divida_liquida"]:
+                if var in dados_multiplicativos:
                     v_mult += MULT_BASE * flag
                 else:
                     v_adit += ADIT_BASE * flag
@@ -110,4 +113,4 @@ for idx, row in df_pontuacao.iterrows():
 
     df_pontuacao.loc[idx, "pontos_final"] = round(pontos)
 
-    print(df_pontuacao[["Nome", "pontos_inicial", "pontos_final"]])
+print(df_pontuacao[["Nome", "pontos_inicial", "pontos_final"]])

@@ -36,7 +36,79 @@ def padronizar_df_IPEADATA(df, nome):
     return df
 
 # --------------------------------------------------- INICIO DATABASES ECONOMIA
-#def pullDatabases_economia() :
+#BUSCA DATABASES NO SITE DO IPEADATA POR API
+        # Baixa todos os metadados
+        #url = "https://www.ipeadata.gov.br/api/odata4/Metadados"
+        
+        #dados = requests.get(url).json()["value"]
+        
+        #meta = pd.DataFrame(dados)
+        
+        #print("Quantidade de séries:", len(meta))
+        #print(meta.columns.tolist())
+        #def buscar_serie(texto):
+        #    resultado = meta[
+        #        meta["SERNOME"].str.contains(texto, case=False, na=False)
+        #    ][["SERCODIGO", "SERNOME", "FNTSIGLA", "PERNOME"]]
+        # 
+        #     return resultado.sort_values("SERNOME")
+        
+        #display(buscar_serie("PIB"))
+        #display(buscar_serie("paridade do poder de compra"))
+        #display(buscar_serie("PIB per capita"))
+        #display(buscar_serie("variação real"))
+        #display(buscar_serie("IPCA"))
+        #display(buscar_serie("expectativa"))
+        #display(buscar_serie("câmbio"))
+        #display(buscar_serie("salário mínimo"))
+        #display(buscar_serie("dívida interna líquida"))
+        
+        #dados = requests.get(url).json()
+        
+        #print(dados.keys())
+        #print(len(dados["value"]))
+        
+        #meta_macro = meta[
+        #    (meta["BASNOME"] == "Macroeconômico")
+        #    & (meta["SERSTATUS"] == "A")
+        #]
+
+def carregar_serie_economia(codigo, nome_serie):
+            url = f"https://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='{codigo}')"
+    
+            try:
+                r = requests.get(url, timeout=30)
+                data = r.json()
+    
+                if "value" not in data or len(data["value"]) == 0:
+                    print(f"Série vazia: {codigo}")
+                    return None
+    
+                df = pd.DataFrame(data["value"])
+                df = padronizar_df_IPEADATA(df, nome_serie)
+    
+                if "VALDATA" in df.columns:
+                    df["VALDATA"] = pd.to_datetime(df["VALDATA"], utc=True)
+    
+                return df
+    
+            except Exception as e:
+                print(f"Erro na série {codigo}: {e}")
+                return None
+
+def carregar_bcb(codigo, nome):
+            url = f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json"
+    
+            r = requests.get(url)
+            df = pd.DataFrame(r.json())
+    
+            df.columns = ["Data", "Valor"]
+            df["Data"] = pd.to_datetime(df["Data"], dayfirst=True)
+            df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
+            df["Nome"] = nome
+            df = df[["Nome", "Data", "Valor"]]
+    
+            return df
     
 # --------------------------------------------------- FIM DATABASES ECONOMIA
 
@@ -58,43 +130,7 @@ def padronizar_df_IPEADATA(df, nome):
 
 class Database:
     def getDatabaseEconomia():
-        #BUSCA DATABASES NO SITE DO IPEADATA POR API
-        # Baixa todos os metadados
-        url = "https://www.ipeadata.gov.br/api/odata4/Metadados"
-        
-        dados = requests.get(url).json()["value"]
-        
-        meta = pd.DataFrame(dados)
-        
-        #print("Quantidade de séries:", len(meta))
-        #print(meta.columns.tolist())
-        def buscar_serie(texto):
-            resultado = meta[
-                meta["SERNOME"].str.contains(texto, case=False, na=False)
-            ][["SERCODIGO", "SERNOME", "FNTSIGLA", "PERNOME"]]
-        
-            return resultado.sort_values("SERNOME")
-        
-        #display(buscar_serie("PIB"))
-        #display(buscar_serie("paridade do poder de compra"))
-        #display(buscar_serie("PIB per capita"))
-        #display(buscar_serie("variação real"))
-        #display(buscar_serie("IPCA"))
-        #display(buscar_serie("expectativa"))
-        #display(buscar_serie("câmbio"))
-        #display(buscar_serie("salário mínimo"))
-        #display(buscar_serie("dívida interna líquida"))
-        
-        dados = requests.get(url).json()
-        
-        #print(dados.keys())
-        #print(len(dados["value"]))
-        
-        meta_macro = meta[
-            (meta["BASNOME"] == "Macroeconômico")
-            & (meta["SERSTATUS"] == "A")
-        ]
-    
+        print("\nDATABASES: Carregando dados de ECONOMIA\n")
         SERIES_ECONOMIA = {
             # PIB
             "pib": "WEO_PIBWEOBRA",
@@ -122,31 +158,6 @@ class Database:
             "salario_minimo_ppc": "GAC12_PPCTAXAC12",
         }
     
-    
-    
-        def carregar_serie_economia(codigo, nome_serie):
-            url = f"https://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='{codigo}')"
-    
-            try:
-                r = requests.get(url, timeout=30)
-                data = r.json()
-    
-                if "value" not in data or len(data["value"]) == 0:
-                    print(f"Série vazia: {codigo}")
-                    return None
-    
-                df = pd.DataFrame(data["value"])
-                df = padronizar_df_IPEADATA(df, nome_serie)
-    
-                if "VALDATA" in df.columns:
-                    df["VALDATA"] = pd.to_datetime(df["VALDATA"], utc=True)
-    
-                return df
-    
-            except Exception as e:
-                print(f"Erro na série {codigo}: {e}")
-                return None
-    
         for nome, codigo in SERIES_ECONOMIA.items():
             df = carregar_serie_economia(codigo, nome)
             if df is not None:
@@ -155,27 +166,13 @@ class Database:
                 print(bases_economia[nome].head())
     
         #DATABASES DO BACEN ATRAVÉS DE API - REFERENTE ÀS DÍVIDAS PÚBLICAS
-    
-        def carregar_bcb(codigo, nome):
-            url = f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json"
-    
-            r = requests.get(url)
-            df = pd.DataFrame(r.json())
-    
-            df.columns = ["Data", "Valor"]
-            df["Data"] = pd.to_datetime(df["Data"], dayfirst=True)
-            df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
-            df["Nome"] = nome
-            df = df[["Nome", "Data", "Valor"]]
-    
-            return df
-    
         bases_economia["divida_bruta"] = carregar_bcb(13762, "divida_bruta")
         bases_economia["divida_liquida"] = carregar_bcb(4505, "divida_liquida")
     
         bases_economia["divida_bruta"] = (bases_economia["divida_bruta"].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
         bases_economia["divida_liquida"] = (bases_economia["divida_liquida"].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
 
+        print("\nDATABASE: Dados de ECONOMIA carregados\n")
         return bases_economia
 
     #def getDatabaseEducacao():
@@ -185,6 +182,7 @@ class Database:
     #    return bases_saude
 
     def getDatabaseSegurancaPublica():
+        print("\nDATABASES: Carregando dados de SEGURANCA PUBLICA\n")
         #código usado para buscar os codigos das databases
         #series_segpub = ipea.lista_series(contendo="BUSCA")
         #print(series_segpub[['codigo', 'nome']])
@@ -210,6 +208,7 @@ class Database:
                 "valor": "Valor"
                 })
                 df["Nome"] = nome
+                df["Data"] = pd.to_datetime(df["Data"], dayfirst=True)
             except Exception as e:
                 print(f"ERRO NA SERIE {codigo}: {e}")
 
@@ -218,4 +217,5 @@ class Database:
                 bases_segurancapublica[nome] = (bases_segurancapublica[nome].pivot_table(index="Data", columns= "Nome", values="Valor", aggfunc="first").reset_index())
                 print(bases_segurancapublica[nome].head())
 
+        print("\nDATABASE: Dados de SEGURANCA PUBLICA carregados\n")
         return bases_segurancapublica

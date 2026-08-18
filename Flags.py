@@ -42,7 +42,11 @@ def printFlags(db):
 
 class Flags:
     def getFlagsEconomia():
-        bases_economia = Database.getDatabaseEconomia()
+        try:
+            bases_economia = Database.getDatabaseEconomia()
+        except Exception as e:
+            print(f"FLAGS - ERRO DE COMUNICACAO COM DATABASES: {e}")
+        
         invertidas={"cambio_compra", "inflacao_expectativa_6m", "divida_bruta", "divida_liquida"}
         calculaFlags(bases_economia, bases_economia_flags)
         return bases_economia_flags
@@ -56,8 +60,12 @@ class Flags:
     #    return bases_saude_flags
 
     def getFlagsSegurancaPublica():
-        bases_segurancapublica = Database.getDatabaseSegurancaPublica()
-        for nome_base, df in Database.getDatabaseSegurancaPublica().items():
+        try:
+            bases_segurancapublica = Database.getDatabaseSegurancaPublica()
+        except Exception as e:
+            print(f"FLAGS - ERRO DE COMUNICACAO COM DATABASES: {e}")
+        
+        for nome_base, df in bases_segurancapublica.items():
             invertidas = [c for c in df.columns if c != "Data"][0]
         calculaFlags(bases_segurancapublica, bases_segurancapublica_flags)
         return bases_segurancapublica_flags
