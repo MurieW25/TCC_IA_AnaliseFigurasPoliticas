@@ -3,10 +3,10 @@ import requests
 import pandas as pd
 from IPython.display import display
 
-from DadosAbertosBrasil import ipea
+from DadosAbertosBrasil import ipea, ibge
 
 bases_economia = {}
-#bases_educacao = {}
+bases_educacao = {}
 #bases_saude = {}
 bases_segurancapublica = {}
 
@@ -109,7 +109,7 @@ def carregar_bcb(codigo, nome):
             df = df[["Nome", "Data", "Valor"]]
     
             return df
-    
+
 # --------------------------------------------------- FIM DATABASES ECONOMIA
 
 # --------------------------------------------------- INICIO DATABASES EDUCACAO
@@ -175,8 +175,47 @@ class Database:
         print("\nDATABASE: Dados de ECONOMIA carregados\n")
         return bases_economia
 
-    #def getDatabaseEducacao():
-    #    return bases_educacao
+    def getDatabaseEducacao():
+        SERIES_EDUCACAO_IBGE = {
+             "taxa_escolaridade" : (7138, 10276),
+        }
+        for nome, (tabela, variavel) in SERIES_EDUCACAO_IBGE.items():
+            try:
+                df = ibge.sidra(
+                    tabela=tabela,
+                    periodos="all",
+                    variaveis=variavel,
+                    localidades={1: "all"}
+                )
+
+                df = df.rename(columns={
+                    "Ano": "Data",
+                    "Valor": "Valor"
+                })
+
+                df = df[["Data", "Valor"]].copy()
+
+                df["Data"] = pd.to_datetime(
+                    df["Data"].astype(str),
+                    format="%Y"
+                )
+
+                df["Valor"] = pd.to_numeric(
+                    df["Valor"],
+                    errors="coerce"
+                )
+
+                bases_educacao[nome] = df
+
+                print(f"\n{nome}")
+                print(df.head())
+
+            except Exception as e:
+                print(
+                    f"ERRO NA SERIE {nome} "
+                    f"(tabela {tabela}, variável {variavel}): {e}"
+                )
+        return bases_educacao
 
     #def getDatabaseSaude():
     #    return bases_saude
